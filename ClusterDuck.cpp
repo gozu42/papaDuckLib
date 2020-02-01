@@ -341,16 +341,19 @@ String * ClusterDuck::getPacketData(int pSize) {
     {
       _lastPacket.senderId  = readMessages(mLength);
       Serial.println("User ID: " + _lastPacket.senderId);
+      packetData[i] = readMessages(mLength);
       i++;
     }
     else if (byteCode == messageId_B) {
       _lastPacket.messageId = readMessages(mLength);
       Serial.println("Message ID: " + _lastPacket.messageId);
+      packetData[i] = readMessages(mLength);
       i++;
     }
     else if (byteCode == payload_B) {
       _lastPacket.payload = readMessages(mLength);
       Serial.println("Message: " + _lastPacket.payload);
+      packetData[i] = readMessages(mLength);
       i++;
     }
     else if (byteCode == iamhere_B) { //DetectorDuck
@@ -361,6 +364,7 @@ String * ClusterDuck::getPacketData(int pSize) {
       } else {
         packetData[i] = "0xF7";
       }
+      //i++;
     }
     else if (byteCode == path_B) {
       _lastPacket.path = readMessages(mLength);
@@ -368,7 +372,7 @@ String * ClusterDuck::getPacketData(int pSize) {
       i++;
     } else {
       packetData[i] = readMessages(mLength);
-      //Serial.println("Data" + i + ": " + packetData[i]);
+      //Serial.println("Data: " + packetData[i]);
       i++;
     }
   }

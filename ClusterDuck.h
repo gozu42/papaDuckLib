@@ -67,7 +67,7 @@ class ClusterDuck {
     static void loRaReceive();
     
     static String getDeviceId();
-    static Packet getLastPacket()
+    static Packet getLastPacket();
 
   protected:
     static Packet _lastPacket;

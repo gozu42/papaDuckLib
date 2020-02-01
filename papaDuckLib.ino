@@ -1,30 +1,23 @@
+#include "ClusterDuck.h"
+
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <WiFiClientSecure.h>
 #include "timer.h"
 
-#define SSID
-#define PASSWORD
+#define SSID        ""
+#define PASSWORD    ""
 
-#define ORG         "9c6nfo"                  // "quickstart" or use your organisation
-#define DEVICE_ID   "UPRM_CID"
+#define ORG         ""                  // "quickstart" or use your organisation
+#define DEVICE_ID   ""
 #define DEVICE_TYPE "PAPA"                // your device type or not used for "quickstart"
-#define TOKEN       "e6hd?lawoVma4zk1-_"      // your device token or not used for "quickstart"#define SSID        "nick_owl" // Type your SSID
+#define TOKEN       ""      // your device token or not used for "quickstart"#define SSID        "nick_owl" // Type your SSID
 
 char server[]           = ORG ".messaging.internetofthings.ibmcloud.com";
 char topic[]            = "iot-2/evt/status/fmt/json";
 char authMethod[]       = "use-token-auth";
 char token[]            = TOKEN;
 char clientId[]         = "d:" ORG ":" DEVICE_TYPE ":" DEVICE_ID;
-
-typedef struct
-{
-  String senderId;
-  String messageId;
-  String payload;
-  String path;
-} Packet;
-
 
 ClusterDuck duck;
 
@@ -38,7 +31,7 @@ void setup() {
   // put your setup code here, to run once:
 
   duck.begin();
-  duck.setupDeviceId("Papa");
+  duck.setDeviceId("Papa");
 
   duck.setupLoRa();
   LoRa.receive();
@@ -56,21 +49,20 @@ void loop() {
     Serial.print("WiFi disconnected, reconnecting to local network: ");
     Serial.print(SSID);
     setupWiFi();
-    disconnected = false;
+
   }
   setupMQTT();
 
   int packetSize = LoRa.parsePacket();
   if (packetSize != 0) {
+    Serial.println(packetSize);
     String * val = duck.getPacketData(packetSize);
-    quackJson(buildPayload(val, packetSize ));
+    quackJson(buildPayload(val, packetSize));
   }
 
   
   timer.tick();
 }
-
-
 
 void setupWiFi()
 {
@@ -80,7 +72,6 @@ void setupWiFi()
 
   // Connect to Access Poink
   WiFi.begin(SSID, PASSWORD);
-  u8x8.drawString(0, 1, "Connecting...");
 
   while (WiFi.status() != WL_CONNECTED)
   {
@@ -92,7 +83,6 @@ void setupWiFi()
   // Connected to Access Point
   Serial.println("");
   Serial.println("WiFi connected - PAPA ONLINE");
-  u8x8.drawString(0, 1, "PAPA Online");
 }
 
 void setupMQTT()
@@ -102,14 +92,13 @@ void setupMQTT()
     while ( ! (ORG == "quickstart" ? client.connect(clientId) : client.connect(clientId, authMethod, token)))
     {
       timer.tick(); //Advance timer to reboot after awhile
-      Serial.print(".");
+      Serial.print("i");
       //delay(500);
     }
   }
 }
 
-void quackJson(String payload)
-{
+void quackJson(String payload) {
   const int bufferSize = 4 * JSON_OBJECT_SIZE(1);
   DynamicJsonBuffer jsonBuffer(bufferSize);
 
@@ -123,24 +112,29 @@ void quackJson(String payload)
 
   root["path"]            = lastPacket.path + "," + duck.getDeviceId();
 
-  offline.path = "";
-
   String jsonstat;
   root.printTo(jsonstat);
   root.prettyPrintTo(Serial);
 
-  if (client.publish(topic, jsonstat.c_str()))
-  {
+  if (client.publish(topic, jsonstat.c_str())) {
     Serial.println("Publish ok");
     root.prettyPrintTo(Serial);
     Serial.println("");
   }
-  else
-  {
+  else {
     Serial.println("Publish failed");
   }
 }
 
 String buildPayload(String * val, int packetSize) {
+  String payload = "";
+  
+  for(int i = 0; i < packetSize/3 - 6; i++) {
+    Serial.println(val[i]);
+    payload = payload + val[i];
+    payload = payload + "*";
+  }
+
+  return payload;
   
 }
