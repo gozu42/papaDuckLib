@@ -57,7 +57,7 @@ void loop() {
   if (packetSize != 0) {
     Serial.println(packetSize);
     String * val = duck.getPacketData(packetSize);
-    quackJson(buildPayload(val, packetSize));
+    quackJson();
   }
 
   
@@ -98,7 +98,7 @@ void setupMQTT()
   }
 }
 
-void quackJson(String payload) {
+void quackJson() {
   const int bufferSize = 4 * JSON_OBJECT_SIZE(1);
   DynamicJsonBuffer jsonBuffer(bufferSize);
 
@@ -108,7 +108,7 @@ void quackJson(String payload) {
 
   root["DeviceID"]        = lastPacket.senderId;
   root["MessageID"]       = lastPacket.messageId;
-  root["Payload"]         = payload;
+  root["Payload"]         = lastPacket.payload;
 
   root["path"]            = lastPacket.path + "," + duck.getDeviceId();
 
@@ -124,17 +124,4 @@ void quackJson(String payload) {
   else {
     Serial.println("Publish failed");
   }
-}
-
-String buildPayload(String * val, int packetSize) {
-  String payload = "";
-  
-  for(int i = 0; i < packetSize/3 - 6; i++) {
-    Serial.println(val[i]);
-    payload = payload + val[i];
-    payload = payload + "*";
-  }
-
-  return payload;
-  
 }
